@@ -1,0 +1,150 @@
+module voysa::monitor {
+    use sui::object::{Self, ID, UID};
+    use sui::transfer;
+    use sui::tx_context::{Self, TxContext};
+    use sui::table::{Self, Table};
+    use sui::event;
+    use std::string::{Self, String};
+    use std::option::{Self, Option};
+
+    // ===== Errors =====
+    const ENotAuthorized: u64 = 1;
+    const ETokenAlreadyRegistered: u64 = 2;
+
+    // ===== Objects and Structs =====
+    
+    /// Admin capability for managing the token registry
+    struct AdminCap has key, store {
+        id: UID
+    }
+
+    /// Main registry of monitored tokens
+    struct TokenRegistry has key {
+        id: UID,
+        tokens: Table<ID, TokenInfo>
+    }
+
+    /// Information about a registered token
+    struct TokenInfo has store {
+        id: UID,
+        name: String,
+        symbol: String,
+        creator: address,
+        description: Option<String>,
+        launch_timestamp: u64,
+        category: String, // e.g., "DeFi", "NFT", "Gaming"
+        contract_address: address,
+        website_url: Option<String>
+    }
+
+    // ===== Events =====
+    
+    /// Event emitted when a new token is registered
+    struct TokenRegistered has copy, drop {
+        token_id: ID,
+        name: String,
+        symbol: String,
+        category: String,
+        timestamp: u64
+    }
+
+    // ===== Functions =====
+    
+    /// Initialize the monitoring platform
+    fun init(ctx: &mut TxContext) {
+        // Create and transfer admin capability to the deployer
+        let admin_cap = AdminCap {
+            id: object::new(ctx)
+        };
+        transfer::transfer(admin_cap, tx_context::sender(ctx));
+        
+        // Create and share the token registry
+        let registry = TokenRegistry {
+            id: object::new(ctx),
+            tokens: table::new(ctx)
+        };
+        transfer::share_object(registry);
+    }
+    
+    /// Register a new token to be monitored
+    public entry fun register_token(
+        _: &AdminCap,
+        registry: &mut TokenRegistry,
+        name: vector<u8>,
+        symbol: vector<u8>,
+        description: vector<u8>,
+        category: vector<u8>,
+        contract_address: address,
+        website_url: vector<u8>,
+        ctx: &mut TxContext
+    ) {
+        let name_str = string::utf8(name);
+        let symbol_str = string::utf8(symbol);
+        let category_str = string::utf8(category);
+        
+        let token_info = TokenInfo {
+            id: object::new(ctx),
+            name: name_str,
+            symbol: symbol_str,
+            creator: tx_context::sender(ctx),
+            description: if (std::vector::is_empty(&description)) {
+                option::none()
+            } else {
+                option::some(string::utf8(description))
+            },
+            launch_timestamp: tx_context::epoch(ctx),
+            category: category_str,
+            contract_address,
+            website_url: if (std::vector::is_empty(&website_url)) {
+                option::none()
+            } else {
+                option::some(string::utf8(website_url))
+            }
+        };
+        
+        let token_id = object::id(&token_info);
+        table::add(&mut registry.tokens, token_id, token_info);
+        
+        // Emit event for monitoring systems
+        event::emit(TokenRegistered {
+            token_id,
+            name: name_str,
+            symbol: symbol_str,
+            category: category_str,
+            timestamp: tx_context::epoch(ctx)
+        });
+    }
+    
+    /// Get basic information about a token (public view function)
+    public fun get_token_info(
+        registry: &TokenRegistry,
+        token_id: ID
+    ): (String, String, String, address) {
+        let token = table::borrow(&registry.tokens, token_id);
+        (
+            token.name,
+            token.symbol, 
+            token.category,
+            token.contract_address
+        )
+    }
+    
+    /// Check if a token is already registered
+    public fun is_token_registered(
+        registry: &TokenRegistry,
+        token_id: ID
+    ): bool {
+        table::contains(&registry.tokens, token_id)
+    }
+    
+    /// Update token description (admin only)
+    public entry fun update_token_description(
+        _: &AdminCap,
+        registry: &mut TokenRegistry,
+        token_id: ID,
+        new_description: vector<u8>
+    ) {
+        let token = table::borrow_mut(&mut registry.tokens, token_id);
+        token.description = option::some(string::utf8(new_description));
+    }
+}

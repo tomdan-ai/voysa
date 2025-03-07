@@ -1,6 +1,6 @@
 // components/TokenResult.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TokenData } from "@/lib/types";
+import type { TokenData } from "@/lib/types";
 
 interface TokenResultProps {
   data: TokenData;

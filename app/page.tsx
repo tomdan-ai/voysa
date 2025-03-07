@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LoaderCircle } from "lucide-react";
 import TokenResult from "@/components/TokenResult";
-import { TokenData } from "@/lib/types";
+import type { TokenData } from "@/lib/types";
 
 export default function Home() {
   const [tokenType, setTokenType] = useState<string>("");

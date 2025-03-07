@@ -1,5 +1,5 @@
 import Link from "next/link";
-import blockchainImage from "@/images/blockchain-bg.webp";
+import blockchainImage from "@/images/blockchain-bg.jpg";
 
 const Navbar = () => {
   return (

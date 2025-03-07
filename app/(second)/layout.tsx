@@ -4,6 +4,7 @@ import clsx from "clsx";
 import type { Metadata } from "next";
 import { Commissioner } from "next/font/google";
 import "@/app/globals.css";
+import { Analytics } from "@vercel/analytics/react"
 
 export const metadata: Metadata = {
   title: "Voysa - SUI Token Checker",
@@ -29,6 +30,7 @@ export default function SecondLayout({ children }: LayoutProps) {
         <main className="mt-24 space-y-5">
           {children}
         </main>
+        <Analytics/>
       </body>
     </html>
   );

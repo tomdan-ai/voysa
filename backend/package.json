@@ -1,17 +1,23 @@
 {
-  "name": "backend",
+  "name": "voysa-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Backend for Voysa - Sui blockchain monitoring",
+  "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "sequelize": "^6.31.1",
+    "pg": "^8.7.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
   }
 }

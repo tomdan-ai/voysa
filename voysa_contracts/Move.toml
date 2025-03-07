@@ -1,0 +1,11 @@
+[package]
+name = "voysa"
+version = "0.1.0"
+published-at = ""
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "devnet" }
+
+[addresses]
+voysa = "0x0"
+sui = "0x2"

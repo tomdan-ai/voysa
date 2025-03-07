@@ -127,3 +127,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Retro button hover effect */
+button:hover {
+  @apply transform scale-105 transition-transform duration-200;
+}
+
+/* Card with CRT monitor vibe */
+.card-retro {
+  @apply bg-gray-700/80 backdrop-blur-md border-2 border-gray-500 shadow-lg;
+}

@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 // lib/types.ts
 export interface TokenData {
   name: string;
@@ -8,3 +10,7 @@ export interface TokenData {
   holders: number | null;
   safetyScore: string;
 }
+
+export type LayoutProps = Readonly<{
+  children: ReactNode;
+}>;

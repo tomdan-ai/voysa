@@ -2,7 +2,7 @@
 
 @plugin "tailwindcss-animate";
 
-@custom-variant dark (&:is(.dark *));
+/* @custom-variant dark (&:is(.dark *)); */
 
 @theme {
   --font-sans: var(--font-geist-sans);
@@ -16,10 +16,14 @@
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
+  /* --primary: oklch(0.21 0.006 285.885); */
+  --primary: hsl(176, 50%, 47%);
+  /* --primary-foreground: oklch(0.985 0 0); */
+  --primary-foreground: hsl(176, 72%, 28%);
+  /* --secondary: oklch(0.967 0.001 286.375); */
+  --secondary: hsl(0, 0%, 0%);
+  /* --secondary-foreground: oklch(0.21 0.006 285.885); */
+  --secondary-foreground: hsl(0, 0%, 48%);
   --muted: oklch(0.967 0.001 286.375);
   --muted-foreground: oklch(0.552 0.016 285.938);
   --accent: oklch(0.967 0.001 286.375);
@@ -117,12 +121,14 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --font-comissioner: var(--font-comissioner)
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -136,4 +142,12 @@ button:hover {
 /* Card with CRT monitor vibe */
 .card-retro {
   @apply bg-gray-700/80 backdrop-blur-md border-2 border-gray-500 shadow-lg;
+}
+
+/* * {
+  @apply border border-solid border-red-500;
+} */
+
+.app-card {
+  @apply w-[50%] sm:w-[80%] bg-white shadow-md rounded-sm overflow-hidden mx-auto;
 }

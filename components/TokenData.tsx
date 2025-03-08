@@ -45,11 +45,7 @@ const TokenData = ({ token }: { token: string }) => {
   }, [cardRef]);
 
   if (isLoading)
-    return (
-      <div className="p-10 text-center ">
-        Loading token analysis…
-      </div>
-    );
+    return <div className="p-10 text-center ">Loading token analysis…</div>;
   if (error)
     return <div className="text-red-500 p-10">Error: {String(error)}</div>;
   if (!tokenData) return null;
@@ -76,14 +72,20 @@ const TokenData = ({ token }: { token: string }) => {
           )}
         >
           {isFraudHigherThanCook
-            ? `THIS TOKEN FRAUD IS ${
+            ? `THIS TOKEN FRAUD IS ${+(
                 tokenData.fraudLikelihood - tokenData.cookPotential
-              }% HIGHER THAN COOK SCORE - IT'S ONLY ${
-                tokenData.safetyScore
-              }% SAFE`
-            : `THIS TOKEN COOK POTENTIAL IS ${
+              ).toFixed(
+                2
+              )}% HIGHER THAN COOK SCORE - IT'S ONLY ${+tokenData.safetyScore.toFixed(
+                2
+              )}% SAFE`
+            : `THIS TOKEN COOK POTENTIAL IS ${+(
                 tokenData.cookPotential - tokenData.fraudLikelihood
-              }% HIGHER THAN FRAUD SCORE - IT'S ${tokenData.safetyScore}% SAFE`}
+              ).toFixed(
+                2
+              )}% HIGHER THAN FRAUD SCORE - IT'S ${+tokenData.safetyScore.toFixed(
+                2
+              )}% SAFE`}
         </div>
 
         {/* Top Metrics */}
@@ -133,21 +135,15 @@ const TokenData = ({ token }: { token: string }) => {
 
         {/* Token Metadata */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4 ">
-            Token Details
-          </h2>
+          <h2 className="text-xl font-semibold mb-4 ">Token Details</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <p className="text-gray-500 ">Name</p>
-              <p className="font-medium ">
-                {tokenData.metadata.name}
-              </p>
+              <p className="font-medium ">{tokenData.metadata.name}</p>
             </div>
             <div>
               <p className="text-gray-500 ">Symbol</p>
-              <p className="font-medium ">
-                {tokenData.metadata.symbol}
-              </p>
+              <p className="font-medium ">{tokenData.metadata.symbol}</p>
             </div>
             <div>
               <p className="text-gray-500 ">Total Supply</p>

@@ -21,16 +21,17 @@ export default function DetailedFactors({
             <div className="flex justify-between mb-1">
               <span className="font-medium text-gray-700 ">{factor.name}</span>
               <span className="text-gray-700 ">
-                {factor.value}% (Weight: {factor.weight * 100}%)
+                {+factor.value.toFixed(2)}% (Weight:{" "}
+                {+(factor.weight * 100).toFixed(2)}%)
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div
                 className={clsx(
                   "h-2.5 rounded-full",
-                  type === "fraud" ? "bg-red-500" : "bg-blue-500",
+                  type === "fraud" ? "bg-red-500" : "bg-blue-500"
                 )}
-                style={{ width: `${Math.min(100,factor.value)}%` }}
+                style={{ width: `${Math.min(100, factor.value)}%` }}
               ></div>
             </div>
             <p className="text-sm mt-1 text-gray-600 ">{factor.description}</p>

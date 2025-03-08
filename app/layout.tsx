@@ -26,7 +26,7 @@ export default function SecondLayout({ children }: LayoutProps) {
         <body
           className={clsx(
             comissioner.variable,
-            "font-comissioner bg-background"
+            "font-comissioner bg-[#eee]"
           )}
         >
           <NextTopLoader showSpinner={false} color="hsl(176, 50%, 47%)" />

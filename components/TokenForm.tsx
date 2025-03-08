@@ -53,7 +53,7 @@ const TokenForm = () => {
                     <FormControl>
                       <div className="flex items-center gap-4 flex-col sm:flex-row">
                         <Input {...field} placeholder="Enter your SUI address" className="bg-white" />
-                        <Button type="submit" className="max-sm:w-full text-white">
+                        <Button type="submit" className="w-full sm:w-auto text-white">
                           Check
                         </Button>
                       </div>

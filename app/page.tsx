@@ -1,19 +1,21 @@
 import MetricCard from "@/components/MetricCard";
+import TokenForm from "@/components/TokenForm";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { BarChart3, ShieldCheck, TrendingUp } from "lucide-react";
 
-export default function SecondPage() {
+
+export default async function Home() {
   return (
     <>
       <Card className="app-card">
         <CardHeader className="space-y-4">
-          <CardTitle className="text-center text-2xl text-black font-bold">
+          <CardTitle className="text-center text-2xl font-bold">
             Voysa – Trade Smarter, Spot the Scams
           </CardTitle>
           <CardDescription className="text-center">
@@ -57,6 +59,7 @@ export default function SecondPage() {
           </p>
         </CardContent>
       </Card>
+      <TokenForm />
     </>
   );
 }

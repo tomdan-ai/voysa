@@ -149,5 +149,5 @@ button:hover {
 } */
 
 .app-card {
-  @apply w-[50%] sm:w-[80%] bg-white shadow-md rounded-sm overflow-hidden mx-auto;
+  @apply w-[80%] shadow-md rounded-sm overflow-hidden mx-auto;
 }

@@ -13,9 +13,9 @@ const Navbar = () => {
         <Link href="/" prefetch className="font-bold text-lg">
           Voysa
         </Link>
-        <Link href="/#api" prefetch className="text-sm hover:underline">
-          API
-        </Link>
+          {/* <Link href="/#api" prefetch className="text-sm hover:underline">
+            API
+          </Link> */}
       </div>
     </nav>
   );

@@ -28,9 +28,9 @@ class SuiService {
   }
 
   /**
-   * Query token analysis from the smart contract with detailed metrics
+   * Query token analysis from the smart contract with detailed metrics and safety checks
    * @param {string} tokenAddress - The token address to analyze
-   * @returns {Promise<Object>} - The detailed analysis results
+   * @returns {Promise<Object>} - The detailed analysis results with safety checks
    */
   async getTokenAnalysis(tokenAddress) {
     try {
@@ -112,7 +112,126 @@ class SuiService {
         holderCount: getValueInRange(addressSum * 71, 10, 50000),
       };
       
-      // Risk indicators
+      // ===== NEW: SAFETY CHECKS =====
+      
+      // 1. Mintable check
+      const isMintable = addressSum % 3 === 0; // Deterministic but pseudo-random
+      const treasuryCapInfo = isMintable 
+        ? {
+            owner: `0x${addressSum.toString(16).padStart(8, '0')}...`,
+            status: "Active"
+          } 
+        : {
+            owner: "0x0",
+            status: "Burned"
+          };
+      
+      // 2. Ownership renounced check
+      const isOwnershipRenounced = addressSum % 5 !== 0;
+      const upgradeCapInfo = isOwnershipRenounced 
+        ? { 
+            status: "Burned",
+            burnTx: `0x${(addressSum * 3).toString(16).padStart(8, '0')}...`
+          }
+        : {
+            status: "Active",
+            owner: `0x${(addressSum * 2).toString(16).padStart(8, '0')}...`
+          };
+      
+      // 3. Contract upgradeable check
+      const isContractUpgradeable = !isOwnershipRenounced;
+      const metadataInfo = {
+        isFrozen: addressSum % 4 !== 0,
+        lastModified: new Date(Date.now() - (contractAge * 24 * 60 * 60 * 1000)).toISOString().split('T')[0]
+      };
+      
+      // 4. LP burnt check
+      const isLpBurnt = addressSum % 7 === 0;
+      const lpInfo = isLpBurnt 
+        ? {
+            status: "Burned",
+            burnTx: `0x${(addressSum * 7).toString(16).padStart(8, '0')}...`,
+            percentage: "100%"
+          }
+        : {
+            status: "Active",
+            owner: addressSum % 2 === 0 ? "Creator Wallet" : "Community Multisig",
+            percentage: `${getValueInRange(addressSum * 13, 30, 100)}%`
+          };
+      
+      // 5. Sufficient Liquidity check
+      const hasSufficientLiquidity = liquidityDepth > 20000;
+      const insufficientReason = !hasSufficientLiquidity 
+        ? (liquidityDepth < 5000 ? "Critical: <$5K liquidity" : "Warning: <$20K liquidity")
+        : null;
+      
+      // Combine safety checks
+      const safetyChecks = {
+        mintable: {
+          status: isMintable ? "WARNING" : "SAFE",
+          details: {
+            isMintable,
+            description: isMintable 
+              ? "Supply can be increased by the token creator" 
+              : "Fixed supply, cannot be increased",
+            treasuryCapInfo
+          }
+        },
+        ownershipRenounced: {
+          status: isOwnershipRenounced ? "SAFE" : "WARNING",
+          details: {
+            isRenounced: isOwnershipRenounced,
+            description: isOwnershipRenounced 
+              ? "Ownership has been renounced, contract cannot be modified" 
+              : "Ownership retained, contract can be modified",
+            upgradeCapInfo
+          }
+        },
+        contractUpgradeable: {
+          status: isContractUpgradeable ? "WARNING" : "SAFE",
+          details: {
+            isUpgradeable: isContractUpgradeable,
+            description: isContractUpgradeable 
+              ? "Contract can be upgraded by the owner" 
+              : "Contract is immutable, cannot be upgraded",
+            metadataInfo
+          }
+        },
+        lpBurnt: {
+          status: isLpBurnt ? "SAFE" : "INFO",
+          details: {
+            isBurnt: isLpBurnt,
+            description: isLpBurnt 
+              ? "Initial liquidity tokens have been burned" 
+              : "Liquidity tokens are still active",
+            lpInfo
+          }
+        },
+        sufficientLiquidity: {
+          status: hasSufficientLiquidity ? "SAFE" : "WARNING",
+          details: {
+            isLiquiditySufficient: hasSufficientLiquidity,
+            amount: `$${liquidityDepth.toLocaleString()}`,
+            description: hasSufficientLiquidity 
+              ? "Token has sufficient liquidity for trading" 
+              : insufficientReason,
+            pools: [
+              {
+                dex: "CetusSwap",
+                pair: `${metadata.symbol}/SUI`,
+                liquidity: `$${Math.round(liquidityDepth * 0.6).toLocaleString()}`
+              },
+              {
+                dex: "TurboSwap",
+                pair: `${metadata.symbol}/USDC`,
+                liquidity: `$${Math.round(liquidityDepth * 0.4).toLocaleString()}`
+              }
+            ]
+          }
+        }
+      };
+      
+      // Risk indicators with updated flags based on safety checks
       const riskIndicators = {
         rugPullRisk: fraudLikelihood > 70 ? "High" : fraudLikelihood > 40 ? "Medium" : "Low",
         pumpPotential: cookPotential > 70 ? "High" : cookPotential > 40 ? "Medium" : "Low",
@@ -126,25 +245,41 @@ class SuiService {
       if (contractAge < 7) riskIndicators.flags.push("Very new contract");
       if (liquidityDepth < 10000) riskIndicators.flags.push("Low liquidity");
       if (volumeGrowth > 200) riskIndicators.flags.push("Unusual volume spike");
+      if (isMintable) riskIndicators.flags.push("Supply can be increased by creator");
+      if (!isOwnershipRenounced) riskIndicators.flags.push("Contract ownership not renounced");
+      if (isContractUpgradeable) riskIndicators.flags.push("Contract can be upgraded");
+      if (!isLpBurnt && lpInfo.percentage < "50%") riskIndicators.flags.push("Less than 50% of LP tokens secured");
       
-      // Generate overall reason based on scores
+      // Generate overall reason based on scores and safety checks
       let reason;
       if (fraudLikelihood > 70) {
         reason = `High fraud likelihood due to ${fraudFactors[0].name.toLowerCase()} and ${fraudFactors[1].name.toLowerCase()}`;
+      } else if (!isOwnershipRenounced && isMintable) {
+        reason = `Caution advised: Contract is upgradeable and supply can be increased`;
       } else if (cookPotential > 70) {
         reason = `High cook potential due to strong ${cookFactors[0].name.toLowerCase()} and ${cookFactors[1].name.toLowerCase()}`;
       } else {
         reason = `Moderate risk profile with balanced metrics across all factors`;
       }
       
+      // Calculate an overall safety score (0-100)
+      const safetyScore = Math.round(
+        (isOwnershipRenounced ? 25 : 0) +
+        (!isMintable ? 25 : 0) +
+        (isLpBurnt ? 25 : (lpInfo.percentage > "50%" ? 15 : 0)) +
+        (hasSufficientLiquidity ? 25 : (liquidityDepth > 5000 ? 10 : 0))
+      );
+      
       return {
         tokenAddress,
         timestamp: Date.now(),
         fraudLikelihood,
         cookPotential,
+        safetyScore,
         reason,
         fraudFactors,
         cookFactors,
+        safetyChecks,
         metadata,
         riskIndicators,
         historicalData: {

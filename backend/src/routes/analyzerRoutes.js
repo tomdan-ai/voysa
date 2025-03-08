@@ -9,10 +9,10 @@ router.get(
   '/token/:tokenAddress',
   [
     param('tokenAddress')
-      .isString()
-      .withMessage('Token address must be a string')
-      .matches(/^0x[a-fA-F0-9]{40,64}$/)
-      .withMessage('Invalid token address format'),
+    .isString()
+    .withMessage('Token address must be a string')
+    .matches(/^0x[a-fA-F0-9]{40,64}(::[\w]+::[\w]+)?$/)
+    .withMessage('Invalid token address format'),
   ],
   analyzerController.getTokenAnalysis
 );
@@ -22,10 +22,10 @@ router.post(
   '/analyze',
   [
     body('tokenAddress')
-      .isString()
-      .withMessage('Token address must be a string')
-      .matches(/^0x[a-fA-F0-9]{40,64}$/)
-      .withMessage('Invalid token address format'),
+    .isString()
+    .withMessage('Token address must be a string')
+    .matches(/^0x[a-fA-F0-9]{40,64}(::[\w]+::[\w]+)?$/)
+    .withMessage('Invalid token address format'),
     body('address')
       .isString()
       .withMessage('Sender address must be a string')

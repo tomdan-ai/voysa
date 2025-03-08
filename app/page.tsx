@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BarChart3, ShieldCheck, TrendingUp } from "lucide-react";
+import { Suspense } from "react";
 
 
 export default async function Home() {
@@ -59,7 +60,9 @@ export default async function Home() {
           </p>
         </CardContent>
       </Card>
-      <TokenForm />
+      <Suspense key="token-form">
+        <TokenForm />
+      </Suspense>
     </>
   );
 }

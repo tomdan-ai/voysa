@@ -1,8 +1,10 @@
 const moveParserService = require('./moveParserService');
 const astGeneratorService = require('./astGeneratorService');
 const vulnerabilityDetectorService = require('./vulnerabilityDetectorService');
-const controlFlowService = require('./controlFlowService');
-const dataFlowService = require('./dataFlowService');
+const tokenAnalyzerService = require('./tokenAnalyzerService');
+const tokenSupplyService = require('./tokenSupplyService');
+const ownershipAnalysisService = require('./ownershipAnalysisService');
+const upgradeAnalysisService = require('./upgradeAnalysisService');
 
 class MoveAnalysisService {
   /**
@@ -20,40 +22,78 @@ class MoveAnalysisService {
       // 2. Generate AST
       const ast = astGeneratorService.generateAST(parsedCode);
       
-      // 3. Detect vulnerabilities using pattern matching and AST analysis
+      // 3. Detect general vulnerabilities using pattern matching and AST analysis
       const vulnerabilities = vulnerabilityDetectorService.detectVulnerabilities(sourceCode, ast);
       
-      // 4. Control flow analysis for functions
-      const controlFlowGraphs = {};
-      for (const func of ast.functions) {
-        try {
-          controlFlowGraphs[func.name] = controlFlowService.generateControlFlowGraph(ast, func.name);
-        } catch (error) {
-          console.warn(`Could not generate control flow graph for ${func.name}: ${error.message}`);
-        }
+      // 4. Perform token-specific analysis
+      const tokenAnalysis = tokenAnalyzerService.analyzeToken(sourceCode, ast);
+      
+      // 5. Perform detailed analyses if this is a token contract
+      let detailedTokenAnalysis = null;
+      if (tokenAnalysis.isToken.isToken) {
+        detailedTokenAnalysis = {
+          supply: tokenSupplyService.analyzeSupplyMechanisms(sourceCode, ast),
+          ownership: ownershipAnalysisService.analyzeOwnershipStructures(sourceCode, ast),
+          treasury: ownershipAnalysisService.analyzeTreasuryOperations(sourceCode, ast),
+          upgrade: upgradeAnalysisService.analyzeUpgradeCapabilities(sourceCode, ast)
+        };
       }
       
-      // 5. Data flow analysis for selected functions
-      const dataFlowAnalyses = {};
-      for (const func of ast.functions.filter(f => f.isPublic || f.isEntry)) {
-        try {
-          dataFlowAnalyses[func.name] = dataFlowService.analyzeDataFlow(ast, func.name);
-        } catch (error) {
-          console.warn(`Could not perform data flow analysis for ${func.name}: ${error.message}`);
-        }
+      // 6. Consolidate all findings
+      const allVulnerabilities = [
+        ...vulnerabilities,
+        ...tokenAnalysis.securityRisks
+      ];
+      
+      if (detailedTokenAnalysis) {
+        const tokenSpecificRisks = [
+          ...detailedTokenAnalysis.supply.riskAssessment,
+          ...detailedTokenAnalysis.ownership.riskAssessment,
+          ...detailedTokenAnalysis.treasury.riskAssessment,
+          ...detailedTokenAnalysis.upgrade.riskAssessment
+        ];
+        
+        allVulnerabilities.push(...tokenSpecificRisks);
       }
+      
+      // 7. Generate security score
+      const securityScore = this.calculateSecurityScore(allVulnerabilities);
       
       return {
         ast,
-        vulnerabilities,
-        controlFlow: controlFlowGraphs,
-        dataFlow: dataFlowAnalyses,
+        vulnerabilities: allVulnerabilities,
+        isToken: tokenAnalysis.isToken,
+        tokenAnalysis: detailedTokenAnalysis,
+        securityScore,
         sourceCode
       };
     } catch (error) {
       console.error('Error analyzing Move source:', error);
       throw new Error(`Failed to analyze Move source: ${error.message}`);
     }
+  }
+  
+  /**
+   * Calculate a security score based on vulnerabilities
+   */
+  calculateSecurityScore(vulnerabilities) {
+    // Start with a perfect score
+    let score = 100;
+    
+    // Count vulnerabilities by severity
+    const criticalCount = vulnerabilities.filter(v => v.severity === 'Critical').length;
+    const highCount = vulnerabilities.filter(v => v.severity === 'High').length;
+    const mediumCount = vulnerabilities.filter(v => v.severity === 'Medium').length;
+    const lowCount = vulnerabilities.filter(v => v.severity === 'Low').length;
+    
+    // Deduct points based on severity
+    score -= criticalCount * 20;  // -20 points per critical
+    score -= highCount * 10;      // -10 points per high
+    score -= mediumCount * 5;     // -5 points per medium
+    score -= lowCount * 1;        // -1 point per low
+    
+    // Ensure score doesn't go below 0
+    return Math.max(0, score);
   }
 }
 
